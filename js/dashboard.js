@@ -8,23 +8,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const API_URL = "https://your-api-id.execute-api.ca-central-1.amazonaws.com/projects"; // Replace with your API Gateway URL
 
-    // Show project form
-    createProjectBtn.addEventListener("click", function () {
-        projectForm.style.display = "block";
-    });
+    // Get the Cognito authentication token
+    function getAuthToken() {
+        return localStorage.getItem("cognitoIdToken"); // Store this when the user logs in
+    }
 
-    // Hide project form
-    cancelForm.addEventListener("click", function () {
-        projectForm.style.display = "none";
-    });
-
-    // Load projects from API
+    // Load projects from API (Authenticated)
     async function loadProjects() {
         try {
-            const response = await fetch(API_URL);
-            const projects = await response.json();
+            const token = getAuthToken();
+            const response = await fetch(API_URL, {
+                method: "GET",
+                headers: {
+                    "Authorization": token, // Send token to API
+                    "Content-Type": "application/json",
+                },
+            });
 
+            const projects = await response.json();
             projectList.innerHTML = "";
+
             projects.forEach((project) => {
                 const li = document.createElement("li");
                 li.textContent = `${project.name} - ${project.type}`;
@@ -55,9 +58,11 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         try {
+            const token = getAuthToken();
             const response = await fetch(API_URL, {
                 method: "POST",
                 headers: {
+                    "Authorization": token, // Send token to API
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(projectData),
