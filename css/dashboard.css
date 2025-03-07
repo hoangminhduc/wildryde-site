@@ -1,0 +1,108 @@
+/* Dashboard Layout */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #007bff;
+    color: white;
+    padding: 15px 20px;
+}
+
+#signOutButton {
+    background: red;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.dashboard-container {
+    display: flex;
+    padding: 20px;
+}
+
+/* Left: Project Form */
+.project-form-container {
+    flex: 1;
+    padding: 20px;
+}
+
+.create-btn {
+    background: #28a745;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Form Modal */
+.form-modal {
+    display: none;
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    margin-top: 20px;
+}
+
+.form-modal label {
+    display: block;
+    margin: 10px 0 5px;
+}
+
+.form-modal input, 
+.form-modal select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.submit-btn {
+    background: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    background: gray;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+/* Right: Project List */
+.project-list-container {
+    flex: 1;
+    padding: 20px;
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#projectList {
+    list-style: none;
+    padding: 0;
+}
+
+#projectList li {
+    background: #007bff;
+    color: white;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
