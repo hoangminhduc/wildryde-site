@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Dashboard</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <h1>Project Dashboard</h1>
+        <button id="signOutButton">Sign Out</button>
+    </header>
+
+    <main class="dashboard-container">
+        <!-- Left Section: Create New Project -->
+        <section class="project-form-container">
+            <button id="createProjectBtn" class="create-btn">+ Create Project</button>
+
+            <div id="projectForm" class="form-modal">
+                <h2>Create New Project</h2>
+                <form id="newProjectForm">
+                    <label for="projectName">Project Name:</label>
+                    <input type="text" id="projectName" required>
+
+                    <label for="projectAddress">Address:</label>
+                    <input type="text" id="projectAddress" required>
+
+                    <label for="projectType">Project Type:</label>
+                    <select id="projectType">
+                        <option value="Residential">Residential</option>
+                        <option value="Commercial">Commercial</option>
+                        <option value="Industrial">Industrial</option>
+                        <option value="Infrastructure">Infrastructure</option>
+                    </select>
+
+                    <button type="submit" class="submit-btn">Create</button>
+                    <button type="button" id="cancelForm" class="cancel-btn">Cancel</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Right Section: Existing Projects List -->
+        <section class="project-list-container">
+            <h2>Existing Projects</h2>
+            <ul id="projectList"></ul>
+        </section>
+    </main>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
