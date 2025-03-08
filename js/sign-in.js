@@ -30,7 +30,7 @@ document.getElementById("signInForm").addEventListener("submit", function(event)
             console.log("ID Token: ", idToken);
 
             // Redirect user to a dashboard or home page
-            window.location.href = "dashboard.html";
+            window.location.href = "dashboard.html"; //redirect to dashboard.html
         },
         onFailure: function(err) {
             console.error("Sign-in failed: ", err.message || JSON.stringify(err));
