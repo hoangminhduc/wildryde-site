@@ -8,22 +8,44 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const API_URL = "https://your-api-id.execute-api.ca-central-1.amazonaws.com/projects"; // Replace with your API Gateway URL
 
-    // Get the Cognito authentication token
-    function getAuthToken() {
-        return localStorage.getItem("cognitoIdToken"); // Store this when the user logs in
+    // ✅ Check if the user is authenticated before accessing the page
+    function checkAuthentication() {
+        const token = localStorage.getItem("cognitoIdToken");
+        if (!token) {
+            alert("You must be signed in to access this page.");
+            window.location.href = "signin.html";
+        }
     }
 
-    // Load projects from API (Authenticated)
+    // ✅ Get Cognito authentication token and user ID
+    function getAuthToken() {
+        return localStorage.getItem("cognitoIdToken"); // Get ID token from storage
+    }
+
+    function getUserId() {
+        return localStorage.getItem("cognitoUserId"); // User's Cognito ID (sub)
+    }
+
+    // ✅ Load only the projects for the authenticated user
     async function loadProjects() {
         try {
             const token = getAuthToken();
+            if (!token) {
+                console.error("No authentication token found.");
+                return;
+            }
+
             const response = await fetch(API_URL, {
                 method: "GET",
                 headers: {
-                    "Authorization": token, // Send token to API
+                    "Authorization": token, // Send token to API Gateway
                     "Content-Type": "application/json",
                 },
             });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch projects");
+            }
 
             const projects = await response.json();
             projectList.innerHTML = "";
@@ -35,16 +57,18 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         } catch (error) {
             console.error("Error loading projects:", error);
+            alert("Failed to load projects.");
         }
     }
 
-    // Handle form submission
+    // ✅ Handle form submission
     newProjectForm.addEventListener("submit", async function (event) {
         event.preventDefault();
 
         const projectName = document.getElementById("projectName").value;
         const projectAddress = document.getElementById("projectAddress").value;
         const projectType = document.getElementById("projectType").value;
+        const userId = getUserId(); // Get the Cognito user ID
 
         if (!projectName || !projectAddress) {
             alert("Please fill in all fields.");
@@ -52,6 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const projectData = {
+            userId, // Include userId to associate the project with the logged-in user
             name: projectName,
             address: projectAddress,
             type: projectType
@@ -83,12 +108,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Handle sign out
+    // ✅ Handle sign out
     signOutButton.addEventListener("click", function () {
         localStorage.removeItem("cognitoIdToken");
+        localStorage.removeItem("cognitoUserId");
         window.location.href = "signin.html";
     });
 
-    // Load projects on page load
+    // ✅ Enforce authentication and load projects
+    checkAuthentication();
     loadProjects();
 });
