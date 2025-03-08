@@ -7,5 +7,4 @@ window._config = {
     api: {
         invokeUrl: 'https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev' // e.g. https://rc7nyt4tql.execute-api.us-west-2.amazonaws.com/prod',
     }
-    window._config.redirectUrl = "dashboard.html";
 };
