@@ -26,11 +26,23 @@ document.getElementById("signInForm").addEventListener("submit", function(event)
     cognitoUser.authenticateUser(authenticationDetails, {
         onSuccess: function(result) {
             console.log("Sign-in successful!");
-            const idToken = result.getIdToken().getJwtToken();
-            console.log("ID Token: ", idToken);
+            
+            const idToken = result.getIdToken().getJwtToken(); // ID Token
+            const accessToken = result.getAccessToken().getJwtToken();
+            const refreshToken = result.getRefreshToken().getToken();
+            const userId = result.getIdToken().payload.sub; // Cognito User ID
 
-            // Redirect user to a dashboard or home page
-            window.location.href = "dashboard.html"; //redirect to dashboard.html
+            // Store authentication tokens in localStorage
+            localStorage.setItem("cognitoIdToken", idToken);
+            localStorage.setItem("cognitoAccessToken", accessToken);
+            localStorage.setItem("cognitoRefreshToken", refreshToken);
+            localStorage.setItem("cognitoUserId", userId);
+
+            console.log("ID Token:", idToken);
+            console.log("User ID:", userId);
+
+            // Redirect to dashboard
+            window.location.href = "dashboard.html";
         },
         onFailure: function(err) {
             console.error("Sign-in failed: ", err.message || JSON.stringify(err));
