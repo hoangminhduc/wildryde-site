@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const projectList = document.getElementById("projectList");
     const signOutButton = document.getElementById("signOutButton");
 
-    const API_URL = "https://your-api-id.execute-api.ca-central-1.amazonaws.com/projects"; // Replace with your actual API Gateway URL
+    const API_URL = "https://your-api-id.execute-api.ca-central-1.amazonaws.com/prod/saveProject"; // Replace with your API Gateway URL
 
     // ✅ Initialize Cognito User Pool
     const userPool = new AmazonCognitoIdentity.CognitoUserPool({
@@ -108,8 +108,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     newProjectForm.addEventListener("submit", async function (event) {
         event.preventDefault();
 
-        const projectName = document.getElementById("projectName").value;
-        const projectAddress = document.getElementById("projectAddress").value;
+        const projectName = document.getElementById("projectName").value.trim();
+        const projectAddress = document.getElementById("projectAddress").value.trim();
         const projectType = document.getElementById("projectType").value;
         const userId = getUserId(); // Get Cognito user ID
 
@@ -119,10 +119,11 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         const projectData = {
-            userId, // Associate the project with the signed-in user
+            userId,
             name: projectName,
             address: projectAddress,
-            type: projectType
+            type: projectType,
+            createdAt: new Date().toISOString()
         };
 
         try {
@@ -143,7 +144,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             if (response.ok) {
                 alert("Project created successfully!");
                 newProjectForm.reset();
-                loadProjects(); // Refresh project list
+                projectForm.style.display = "none";
+                loadProjects();
             } else {
                 const errorData = await response.json();
                 alert("Error: " + errorData.message);
