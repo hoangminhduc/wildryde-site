@@ -14,7 +14,23 @@ document.addEventListener("DOMContentLoaded", async function () {
         ClientId: window._config.cognito.userPoolClientId,
     });
 
-    // ✅ Check if the user is authenticated before loading dashboard
+    // ✅ Ensure elements exist before attaching event listeners
+    if (!createProjectBtn || !projectForm || !cancelForm || !newProjectForm) {
+        console.error("One or more form elements not found in the DOM.");
+        return;
+    }
+
+    // ✅ Show the project form when clicking "+ Create Project"
+    createProjectBtn.addEventListener("click", function () {
+        projectForm.style.display = "block"; // Show form
+    });
+
+    // ✅ Hide the form when clicking "Cancel"
+    cancelForm.addEventListener("click", function () {
+        projectForm.style.display = "none"; // Hide form
+    });
+
+    // ✅ Check if the user is authenticated before loading the dashboard
     function checkAuthentication() {
         return new Promise((resolve, reject) => {
             const cognitoUser = userPool.getCurrentUser();
@@ -127,7 +143,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             if (response.ok) {
                 alert("Project created successfully!");
                 newProjectForm.reset();
-                projectForm.style.display = "none";
                 loadProjects(); // Refresh project list
             } else {
                 const errorData = await response.json();
