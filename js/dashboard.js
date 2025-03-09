@@ -14,24 +14,31 @@ document.addEventListener("DOMContentLoaded", async function () {
         ClientId: window._config.cognito.userPoolClientId,
     });
 
-    // ✅ Check if a user is already signed in
+    // ✅ Check if the user is authenticated before loading dashboard
     function checkAuthentication() {
-        const cognitoUser = userPool.getCurrentUser();
-
-        if (cognitoUser) {
-            cognitoUser.getSession((err, session) => {
-                if (err || !session.isValid()) {
-                    console.error("Session expired or invalid. Redirecting to login...");
-                    window.location.href = "signin.html";
-                } else {
-                    console.log("User is already authenticated. Redirecting to dashboard...");
-                    window.location.href = "dashboard.html"; // Redirect to dashboard if session is valid
-                }
-            });
-        } else {
-            console.log("No authenticated user found. Redirecting to login...");
-            window.location.href = "signin.html"; // Redirect to sign-in if no user is found
-        }
+        return new Promise((resolve, reject) => {
+            const cognitoUser = userPool.getCurrentUser();
+            if (!cognitoUser) {
+                console.error("User not authenticated.");
+                alert("You must be signed in to access this page.");
+                window.location.href = "signin.html"; // Redirect to sign-in if no user found
+                reject("No authenticated user.");
+            } else {
+                cognitoUser.getSession((err, session) => {
+                    if (err || !session.isValid()) {
+                        console.error("Session expired or invalid.");
+                        alert("Session expired. Please sign in again.");
+                        window.location.href = "signin.html";
+                        reject("Invalid session.");
+                    } else {
+                        console.log("User authenticated successfully.");
+                        localStorage.setItem("cognitoIdToken", session.getIdToken().getJwtToken());
+                        localStorage.setItem("cognitoUserId", session.getIdToken().payload.sub);
+                        resolve();
+                    }
+                });
+            }
+        });
     }
 
     // ✅ Get authentication token
@@ -148,6 +155,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         window.location.href = "signin.html";
     });
 
-    // ✅ Redirect already signed-in users to `dashboard.html`
-    checkAuthentication();
+    // ✅ Run authentication check and load projects only if authenticated
+    checkAuthentication().then(loadProjects).catch((err) => console.error(err));
 });
