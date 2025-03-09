@@ -42,7 +42,7 @@ document.getElementById("signInForm").addEventListener("submit", function(event)
             console.log("User ID:", userId);
 
             // Redirect to dashboard
-            window.location.href = "test.html";
+            window.location.href = "dashboard.html";
         },
         onFailure: function(err) {
             console.error("Sign-in failed: ", err.message || JSON.stringify(err));
