@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const projectList = document.getElementById("projectList");
     const signOutButton = document.getElementById("signOutButton");
 
-    const API_URL = "https://your-api-id.execute-api.ca-central-1.amazonaws.com/prod/saveProject"; // Replace with your API Gateway URL
+    const API_URL = "https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/saveProject"; // Replace with your API Gateway URL
 
     // ✅ Initialize Cognito User Pool
     const userPool = new AmazonCognitoIdentity.CognitoUserPool({
