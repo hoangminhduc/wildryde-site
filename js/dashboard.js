@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const projectList = document.getElementById("projectList");
     const signOutButton = document.getElementById("signOutButton");
 
-    const API_URL = "https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/SaveProject"; // Replace with your API Gateway URL
+    const API_URL = "https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/SaveProject"; // Replace with actual API URL
 
     // ✅ Initialize Cognito User Pool
     const userPool = new AmazonCognitoIdentity.CognitoUserPool({
@@ -14,40 +14,37 @@ document.addEventListener("DOMContentLoaded", async function () {
         ClientId: window._config.cognito.userPoolClientId,
     });
 
-    // ✅ Ensure elements exist before attaching event listeners
+    // ✅ Ensure required elements exist
     if (!createProjectBtn || !projectForm || !cancelForm || !newProjectForm) {
         console.error("One or more form elements not found in the DOM.");
         return;
     }
 
-    // ✅ Show the project form when clicking "+ Create Project"
+    // ✅ Show project form on "+ Create Project" click
     createProjectBtn.addEventListener("click", function () {
-        projectForm.style.display = "block"; // Show form
+        projectForm.style.display = "block"; 
     });
 
-    // ✅ Hide the form when clicking "Cancel"
+    // ✅ Hide form on "Cancel" click
     cancelForm.addEventListener("click", function () {
-        projectForm.style.display = "none"; // Hide form
+        projectForm.style.display = "none"; 
     });
 
-    // ✅ Check if the user is authenticated before loading the dashboard
+    // ✅ Check if the user is authenticated before loading dashboard
     function checkAuthentication() {
         return new Promise((resolve, reject) => {
             const cognitoUser = userPool.getCurrentUser();
             if (!cognitoUser) {
-                console.error("User not authenticated.");
                 alert("You must be signed in to access this page.");
-                window.location.href = "signin.html"; // Redirect to sign-in if no user found
-                reject("No authenticated user.");
+                window.location.href = "signin.html"; 
+                reject("User not authenticated.");
             } else {
                 cognitoUser.getSession((err, session) => {
                     if (err || !session.isValid()) {
-                        console.error("Session expired or invalid.");
                         alert("Session expired. Please sign in again.");
                         window.location.href = "signin.html";
                         reject("Invalid session.");
                     } else {
-                        console.log("User authenticated successfully.");
                         localStorage.setItem("cognitoIdToken", session.getIdToken().getJwtToken());
                         localStorage.setItem("cognitoUserId", session.getIdToken().payload.sub);
                         resolve();
@@ -59,12 +56,12 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // ✅ Get authentication token
     function getAuthToken() {
-        return localStorage.getItem("cognitoIdToken"); // Retrieve stored token
+        return localStorage.getItem("cognitoIdToken"); 
     }
 
     // ✅ Get user ID
     function getUserId() {
-        return localStorage.getItem("cognitoUserId"); // Retrieve stored user ID
+        return localStorage.getItem("cognitoUserId"); 
     }
 
     // ✅ Load authenticated user's projects
@@ -76,12 +73,12 @@ document.addEventListener("DOMContentLoaded", async function () {
                 return;
             }
 
-            projectList.innerHTML = "<p>Loading projects...</p>"; // Display loading message
+            projectList.innerHTML = "<p>Loading projects...</p>"; 
 
             const response = await fetch(API_URL, {
                 method: "GET",
                 headers: {
-                    "Authorization": `Bearer ${token}`, // Ensure correct token format
+                    "Authorization": `Bearer ${token}`, 
                     "Content-Type": "application/json",
                 },
             });
@@ -91,7 +88,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
 
             const projects = await response.json();
-            projectList.innerHTML = ""; // Clear loading message
+            projectList.innerHTML = ""; 
 
             projects.forEach((project) => {
                 const li = document.createElement("li");
@@ -100,7 +97,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
         } catch (error) {
             console.error("Error loading projects:", error);
-            projectList.innerHTML = "<p>Failed to load projects.</p>"; // Show error message
+            projectList.innerHTML = "<p>Failed to load projects.</p>"; 
         }
     }
 
@@ -111,7 +108,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         const projectName = document.getElementById("projectName").value.trim();
         const projectAddress = document.getElementById("projectAddress").value.trim();
         const projectType = document.getElementById("projectType").value;
-        const userId = getUserId(); // Get Cognito user ID
+        const userId = getUserId(); 
 
         if (!projectName || !projectAddress) {
             alert("Please fill in all fields.");
@@ -126,11 +123,13 @@ document.addEventListener("DOMContentLoaded", async function () {
             createdAt: new Date().toISOString()
         };
 
+        const submitButton = newProjectForm.querySelector(".submit-btn");
+        submitButton.disabled = true;
+        submitButton.textContent = "Creating...";
+
         try {
             const token = getAuthToken();
-            const submitButton = newProjectForm.querySelector(".submit-btn");
-            submitButton.disabled = true;
-            submitButton.textContent = "Creating...";
+            console.log("Submitting project data:", projectData);
 
             const response = await fetch(API_URL, {
                 method: "POST",
@@ -141,28 +140,30 @@ document.addEventListener("DOMContentLoaded", async function () {
                 body: JSON.stringify(projectData),
             });
 
-            if (response.ok) {
+            console.log("Response status:", response.status);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("API Error:", errorData);
+                alert("Error: " + (errorData.message || "Failed to save project."));
+            } else {
                 alert("Project created successfully!");
                 newProjectForm.reset();
-                projectForm.style.display = "none";
-                loadProjects();
-            } else {
-                const errorData = await response.json();
-                alert("Error: " + errorData.message);
+                projectForm.style.display = "none"; 
+                await loadProjects();
             }
         } catch (error) {
-            console.error("Error saving project:", error);
-            alert("Failed to save project.");
+            console.error("Network or server error:", error);
+            alert("Failed to save project. Please check your network connection.");
         } finally {
             submitButton.disabled = false;
             submitButton.textContent = "Create";
         }
     });
 
-    // ✅ Handle user sign out
+    // ✅ Handle user sign-out
     signOutButton.addEventListener("click", function () {
         const cognitoUser = userPool.getCurrentUser();
-
         if (cognitoUser) {
             cognitoUser.signOut();
         }
@@ -172,6 +173,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         window.location.href = "signin.html";
     });
 
-    // ✅ Run authentication check and load projects only if authenticated
+    // ✅ Run authentication check and load projects if authenticated
     checkAuthentication().then(loadProjects).catch((err) => console.error(err));
 });
