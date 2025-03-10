@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const API_URL_GET = "https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/GetUserProjects";
     const API_URL_POST = "https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/SaveProject";
 
-    // ✅ Ensure authentication before accessing the dashboard
+    // ✅ Check authentication before accessing the dashboard
     async function checkAuthentication() {
         return new Promise((resolve, reject) => {
             const token = localStorage.getItem("cognitoIdToken");
@@ -85,6 +85,13 @@ document.addEventListener("DOMContentLoaded", async function () {
                 },
             });
 
+            if (response.status === 401 || response.status === 403) {
+                console.warn("Unauthorized request. Redirecting to sign-in.");
+                alert("Session expired. Please sign in again.");
+                window.location.href = "signin.html";
+                return;
+            }
+
             if (!response.ok) {
                 throw new Error(`Failed to fetch projects: ${response.statusText}`);
             }
@@ -92,7 +99,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             const projects = await response.json();
             projectTableBody.innerHTML = ""; // Clear loading message
 
-            if (!projects || projects.length === 0) {
+            if (!Array.isArray(projects) || projects.length === 0) {
                 projectTableBody.innerHTML = "<tr><td colspan='2'>No projects found.</td></tr>";
                 return;
             }
@@ -113,7 +120,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
 
             console.log("Projects displayed successfully!");
-
         } catch (error) {
             console.error("Error loading projects:", error);
             projectTableBody.innerHTML = "<tr><td colspan='2'>Failed to load projects.</td></tr>";
