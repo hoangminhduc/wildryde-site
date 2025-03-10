@@ -25,10 +25,18 @@ var WildRydes = window.WildRydes || {};
         AWSCognito.config.region = _config.cognito.region;
     }
 
+    /** ✅ Sign Out Function */
     WildRydes.signOut = function signOut() {
-        userPool.getCurrentUser().signOut();
+        var cognitoUser = userPool.getCurrentUser();
+        if (cognitoUser) {
+            cognitoUser.signOut();
+        }
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = signinUrl;
     };
 
+    /** ✅ Get Authentication Token */
     WildRydes.authToken = new Promise(function fetchCurrentAuthToken(resolve, reject) {
         var cognitoUser = userPool.getCurrentUser();
 
@@ -47,9 +55,8 @@ var WildRydes = window.WildRydes || {};
         }
     });
 
-
     /*
-     * Cognito User Pool functions
+     * ✅ Cognito User Pool Functions
      */
 
     function register(email, password, onSuccess, onFailure) {
@@ -78,8 +85,32 @@ var WildRydes = window.WildRydes || {};
 
         var cognitoUser = createCognitoUser(email);
         cognitoUser.authenticateUser(authenticationDetails, {
-            onSuccess: onSuccess,
-            onFailure: onFailure
+            onSuccess: function (session) {
+                console.log("✅ Successfully Logged In");
+
+                const idToken = session.getIdToken().getJwtToken();
+                const accessToken = session.getAccessToken().getJwtToken();
+                const refreshToken = session.getRefreshToken().getToken();
+                const userId = session.getIdToken().payload.sub; // Cognito User ID
+
+                // ✅ Store authentication tokens in localStorage
+                localStorage.setItem("cognitoIdToken", idToken);
+                localStorage.setItem("cognitoAccessToken", accessToken);
+                localStorage.setItem("cognitoRefreshToken", refreshToken);
+                localStorage.setItem("cognitoUserId", userId);
+
+                console.log("🔹 ID Token:", idToken);
+                console.log("🔹 Access Token:", accessToken);
+                console.log("🔹 Refresh Token:", refreshToken);
+                console.log("🔹 User ID:", userId);
+
+                // ✅ Redirect to dashboard after successful login
+                window.location.href = "dashboard.html";
+            },
+            onFailure: function (err) {
+                console.error("❌ Sign-in failed: ", err.message || JSON.stringify(err));
+                alert("Sign-in failed: " + err.message);
+            }
         });
     }
 
@@ -105,7 +136,7 @@ var WildRydes = window.WildRydes || {};
     }
 
     /*
-     *  Event Handlers
+     * ✅ Event Handlers
      */
 
     $(function onDocReady() {
@@ -118,13 +149,14 @@ var WildRydes = window.WildRydes || {};
         var email = $('#emailInputSignin').val();
         var password = $('#passwordInputSignin').val();
         event.preventDefault();
+
         signin(email, password,
             function signinSuccess() {
-                console.log('Successfully Logged In');
+                console.log('✅ Successfully Logged In');
                 window.location.href = 'dashboard.html';
             },
             function signinError(err) {
-                alert(err);
+                alert("Sign-in failed: " + err);
             }
         );
     }
@@ -161,7 +193,7 @@ var WildRydes = window.WildRydes || {};
         verify(email, code,
             function verifySuccess(result) {
                 console.log('call result: ' + result);
-                console.log('Successfully verified');
+                console.log('✅ Successfully verified');
                 alert('Verification successful. You will now be redirected to the login page.');
                 window.location.href = signinUrl;
             },
