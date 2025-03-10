@@ -88,12 +88,26 @@ var WildRydes = window.WildRydes || {};
             onSuccess: function (session) {
                 console.log("✅ Successfully Logged In");
 
+                if (!session || !session.isValid()) {
+                    console.error("❌ Error: Session is invalid.");
+                    alert("Authentication failed. Please try again.");
+                    return;
+                }
+
                 const idToken = session.getIdToken().getJwtToken();
                 const accessToken = session.getAccessToken().getJwtToken();
                 const refreshToken = session.getRefreshToken().getToken();
-                const userId = session.getIdToken().payload.sub; // Cognito User ID
+                const idTokenPayload = session.getIdToken().payload;
 
-                // ✅ Store authentication tokens in localStorage
+                if (!idTokenPayload || !idTokenPayload.sub) {
+                    console.error("❌ Error: User ID (sub) not found in ID token.");
+                    alert("Authentication failed. No user ID found.");
+                    return;
+                }
+
+                const userId = idTokenPayload.sub; // ✅ Extract user ID safely
+
+                // ✅ Store authentication tokens and user ID in `localStorage`
                 localStorage.setItem("cognitoIdToken", idToken);
                 localStorage.setItem("cognitoAccessToken", accessToken);
                 localStorage.setItem("cognitoRefreshToken", refreshToken);
