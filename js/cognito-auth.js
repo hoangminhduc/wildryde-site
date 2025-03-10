@@ -97,7 +97,10 @@ var WildRydes = window.WildRydes || {};
                 const idToken = session.getIdToken().getJwtToken();
                 const accessToken = session.getAccessToken().getJwtToken();
                 const refreshToken = session.getRefreshToken().getToken();
-                const idTokenPayload = session.getIdToken().payload;
+
+                // ✅ Ensure correct payload decoding
+                const idTokenPayload = JSON.parse(atob(idToken.split(".")[1]));
+                console.log("🔹 Full ID Token Payload:", idTokenPayload);
 
                 if (!idTokenPayload || !idTokenPayload.sub) {
                     console.error("❌ Error: User ID (sub) not found in ID token.");
@@ -114,8 +117,6 @@ var WildRydes = window.WildRydes || {};
                 localStorage.setItem("cognitoUserId", userId);
 
                 console.log("🔹 ID Token:", idToken);
-                console.log("🔹 Access Token:", accessToken);
-                console.log("🔹 Refresh Token:", refreshToken);
                 console.log("🔹 User ID:", userId);
 
                 // ✅ Redirect to dashboard after successful login
@@ -177,7 +178,7 @@ var WildRydes = window.WildRydes || {};
 
     function handleRegister(event) {
         var email = $('#emailInputRegister').val();
-        var password = $('#passwordInputRegister').val();
+        var password = $('#emailInputRegister').val();
         var password2 = $('#password2InputRegister').val();
 
         var onSuccess = function registerSuccess(result) {
