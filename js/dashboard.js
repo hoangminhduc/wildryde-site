@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const API_URL_GET = "https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/GetUserProjects"; 
     const API_URL_POST = "https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/SaveProject"; 
 
-    // ✅ Ensure authentication before accessing the dashboard
+    // ✅ Ensure authentication before accessing the dashboard -1
     function checkAuthentication() {
         return new Promise((resolve, reject) => {
             const token = localStorage.getItem("cognitoIdToken");
