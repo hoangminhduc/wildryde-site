@@ -10,51 +10,72 @@ document.addEventListener("DOMContentLoaded", async function () {
     const API_URL_POST = "https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/SaveProject";
 
     // ✅ Check authentication before accessing the dashboard
-    async function checkAuthentication() {
-        return new Promise((resolve, reject) => {
-            const token = localStorage.getItem("cognitoIdToken");
-            const userId = localStorage.getItem("cognitoUserId");
+ async function checkAuthentication() {
+    return new Promise((resolve, reject) => {
+        const token = localStorage.getItem("cognitoIdToken");
 
-            if (!token || !userId) {
-                console.error("No authentication token or user ID found.");
-                alert("You must be signed in to access this page.");
-                window.location.href = "signin.html";
-                reject("No authenticated user.");
-                return;
-            }
+        if (!token) {
+            console.warn("No authentication token found.");
+            alert("You must be signed in.");
+            window.location.href = "signin.html";
+            reject("No authenticated user.");
+            return;
+        }
 
-            // ✅ Verify the Cognito session
-            const userPool = new AmazonCognitoIdentity.CognitoUserPool({
-                UserPoolId: window._config.cognito.userPoolId,
-                ClientId: window._config.cognito.userPoolClientId,
-            });
+        const userPool = new AmazonCognitoIdentity.CognitoUserPool({
+            UserPoolId: window._config.cognito.userPoolId,
+            ClientId: window._config.cognito.userPoolClientId,
+        });
 
-            const cognitoUser = userPool.getCurrentUser();
+        const cognitoUser = userPool.getCurrentUser();
+        if (!cognitoUser) {
+            console.warn("No Cognito user found.");
+            alert("Session expired. Please sign in again.");
+            window.location.href = "signin.html";
+            reject("Session expired.");
+            return;
+        }
 
-            if (!cognitoUser) {
-                console.error("No Cognito user found.");
+        cognitoUser.getSession((err, session) => {
+            if (err || !session || !session.isValid()) {
+                console.warn("Invalid session:", err);
                 alert("Session expired. Please sign in again.");
                 window.location.href = "signin.html";
-                reject("Session expired.");
+                reject("Invalid session.");
                 return;
             }
 
-            cognitoUser.getSession((err, session) => {
-                if (err || !session.isValid()) {
-                    console.error("Session expired or invalid.", err);
-                    alert("Session expired. Please sign in again.");
-                    window.location.href = "signin.html";
-                    reject("Invalid session.");
-                } else {
-                    console.log("User is authenticated. Session is valid.");
-                    // Store fresh tokens in localStorage
-                    localStorage.setItem("cognitoIdToken", session.getIdToken().getJwtToken());
-                    localStorage.setItem("cognitoUserId", session.getIdToken().payload.sub);
-                    resolve();
-                }
-            });
+            // ✅ Log the full token
+            const idToken = session.getIdToken();
+            console.log("Full ID Token:", idToken.getJwtToken());
+
+            if (!idToken || !idToken.payload) {
+                console.error("Invalid ID Token: Missing payload.");
+                alert("Authentication error. Please sign in again.");
+                window.location.href = "signin.html";
+                reject("Invalid ID Token.");
+                return;
+            }
+
+            // ✅ Log the decoded token payload
+            console.log("Decoded ID Token Payload:", idToken.payload);
+
+            // ✅ Ensure `sub` exists
+            if (!idToken.payload.sub) {
+                console.error("User ID (sub) is missing from the token.");
+                alert("Authentication error. Please sign in again.");
+                window.location.href = "signin.html";
+                reject("Missing user ID.");
+                return;
+            }
+
+            // ✅ Store user ID safely
+            localStorage.setItem("cognitoUserId", idToken.payload.sub);
+            resolve();
         });
-    }
+    });
+}
+
 
     // ✅ Get authentication token
     function getAuthToken() {
