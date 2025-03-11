@@ -10,61 +10,51 @@ document.addEventListener("DOMContentLoaded", async function () {
     const API_URL_POST = "https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/SaveProject";
 
   // ✅ Check authentication before accessing the dashboard
-   async function checkAuthentication() {
-    return new Promise((resolve, reject) => {
-        const token = localStorage.getItem("cognitoIdToken");
+    async function checkAuthentication() {
+        return new Promise((resolve, reject) => {
+            const token = localStorage.getItem("cognitoIdToken");
+            const userId = localStorage.getItem("cognitoUserId");
 
-        if (!token) {
-            console.error("🚨 No authentication token found.");
-            alert("You must be signed in to access this page.");
-            window.location.href = "signin.html";
-            return reject("No authenticated user.");
-        }
+            if (!token || !userId) {
+                console.error("No authentication token or user ID found.");
+                alert("You must be signed in to access this page.");
+                window.location.href = "signin.html";
+                return reject("No authenticated user.");
+            }
 
-        // ✅ Verify Cognito session
-        const userPool = new AmazonCognitoIdentity.CognitoUserPool({
-            UserPoolId: window._config.cognito.userPoolId,
-            ClientId: window._config.cognito.userPoolClientId,
-        });
+            // ✅ Verify the Cognito session
+            const userPool = new AmazonCognitoIdentity.CognitoUserPool({
+                UserPoolId: window._config.cognito.userPoolId,
+                ClientId: window._config.cognito.userPoolClientId,
+            });
 
-        const cognitoUser = userPool.getCurrentUser();
+            const cognitoUser = userPool.getCurrentUser();
 
-        if (!cognitoUser) {
-            console.error("🚨 No Cognito user found.");
-            alert("Session expired. Please sign in again.");
-            window.location.href = "signin.html";
-            return reject("Session expired.");
-        }
-
-        cognitoUser.getSession((err, session) => {
-            if (err || !session || !session.isValid()) {
-                console.error("🚨 Session expired or invalid:", err);
+            if (!cognitoUser) {
+                console.error("No Cognito user found.");
                 alert("Session expired. Please sign in again.");
                 window.location.href = "signin.html";
-                return reject("Invalid session.");
+                return reject("Session expired.");
             }
 
-            console.log("✅ User is authenticated. Session is valid.");
+            cognitoUser.getSession((err, session) => {
+                if (err || !session || !session.isValid()) {
+                    console.error("Session expired or invalid.", err);
+                    alert("Session expired. Please sign in again.");
+                    window.location.href = "signin.html";
+                    return reject("Invalid session.");
+                }
 
-            // ✅ Extract ID Token
-            const idToken = session.getIdToken();
-            localStorage.setItem("cognitoIdToken", idToken.getJwtToken());
+                console.log("User is authenticated. Session is valid.");
 
-            // ✅ Safely Extract User ID (`sub`)
-            const decodedToken = idToken.decodePayload();
-            if (decodedToken && decodedToken.sub) {
-                localStorage.setItem("cognitoUserId", decodedToken.sub);
-                console.log("✅ Updated User ID:", decodedToken.sub);
+                // ✅ Store fresh tokens in localStorage
+                localStorage.setItem("cognitoIdToken", session.getIdToken().getJwtToken());
+                localStorage.setItem("cognitoUserId", session.getIdToken().payload.sub);
+
                 resolve();
-            } else {
-                console.error("🚨 Failed to extract 'sub' from ID Token.");
-                alert("Invalid session. Please sign in again.");
-                window.location.href = "signin.html";
-                return reject("Invalid ID token payload.");
-            }
+            });
         });
-    });
-}
+    }
 
 
     // ✅ Get authentication token
