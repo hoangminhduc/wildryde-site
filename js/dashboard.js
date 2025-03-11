@@ -10,69 +10,51 @@ document.addEventListener("DOMContentLoaded", async function () {
     const API_URL_POST = "https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/SaveProject";
 
     // ✅ Check authentication before accessing the dashboard
-async function checkAuthentication() {
-    return new Promise((resolve, reject) => {
-        const userPool = new AmazonCognitoIdentity.CognitoUserPool({
-            UserPoolId: window._config.cognito.userPoolId,
-            ClientId: window._config.cognito.userPoolClientId,
-        });
+    async function checkAuthentication() {
+        return new Promise((resolve, reject) => {
+            const token = localStorage.getItem("cognitoIdToken");
+            const userId = localStorage.getItem("cognitoUserId");
 
-        const cognitoUser = userPool.getCurrentUser();
-        if (!cognitoUser) {
-            console.warn("No Cognito user found.");
-            alert("Session expired. Please sign in again.");
-            window.location.href = "signin.html";
-            reject("Session expired.");
-            return;
-        }
+            if (!token || !userId) {
+                console.error("No authentication token or user ID found.");
+                alert("You must be signed in to access this page.");
+                window.location.href = "signin.html";
+                reject("No authenticated user.");
+                return;
+            }
 
-        cognitoUser.getSession((err, session) => {
-            if (err || !session || !session.isValid()) {
-                console.warn("Invalid session:", err);
+            // ✅ Verify the Cognito session
+            const userPool = new AmazonCognitoIdentity.CognitoUserPool({
+                UserPoolId: window._config.cognito.userPoolId,
+                ClientId: window._config.cognito.userPoolClientId,
+            });
+
+            const cognitoUser = userPool.getCurrentUser();
+
+            if (!cognitoUser) {
+                console.error("No Cognito user found.");
                 alert("Session expired. Please sign in again.");
                 window.location.href = "signin.html";
-                reject("Invalid session.");
+                reject("Session expired.");
                 return;
             }
 
-            console.log("Session retrieved successfully:", session);
-
-            const idToken = session.getIdToken();
-            if (!idToken) {
-                console.error("No ID Token found.");
-                alert("Authentication error. Please sign in again.");
-                window.location.href = "signin.html";
-                reject("No ID Token.");
-                return;
-            }
-
-            console.log("Raw ID Token:", idToken.getJwtToken());
-
-            if (!idToken.payload) {
-                console.error("Invalid ID Token: Missing payload.");
-                alert("Authentication error. Please sign in again.");
-                window.location.href = "signin.html";
-                reject("Invalid ID Token.");
-                return;
-            }
-
-            console.log("Decoded ID Token Payload:", idToken.payload);
-
-            if (!idToken.payload.sub) {
-                console.error("User ID (sub) is missing from the token.");
-                alert("Authentication error. Please sign in again.");
-                window.location.href = "signin.html";
-                reject("Missing user ID.");
-                return;
-            }
-
-            // ✅ Store user ID safely
-            localStorage.setItem("cognitoIdToken", idToken.getJwtToken());
-            localStorage.setItem("cognitoUserId", idToken.payload.sub);
-            resolve();
+            cognitoUser.getSession((err, session) => {
+                if (err || !session.isValid()) {
+                    console.error("Session expired or invalid.", err);
+                    alert("Session expired. Please sign in again.");
+                    window.location.href = "signin.html";
+                    reject("Invalid session.");
+                } else {
+                    console.log("User is authenticated. Session is valid.");
+                    // Store fresh tokens in localStorage
+                    localStorage.setItem("cognitoIdToken", session.getIdToken().getJwtToken());
+                    localStorage.setItem("cognitoUserId", session.getIdToken().payload.sub);
+                    resolve();
+                }
+            });
         });
-    });
-}
+    }
 
     // ✅ Get authentication token
     function getAuthToken() {
@@ -98,7 +80,7 @@ async function checkAuthentication() {
             const response = await fetch(API_URL_GET, {
                 method: "GET",
                 headers: {
-                    "Authorization": `Bearer ${token}`,
+                    "Authorization": Bearer ${token},
                     "Content-Type": "application/json",
                 },
             });
@@ -111,7 +93,7 @@ async function checkAuthentication() {
             }
 
             if (!response.ok) {
-                throw new Error(`Failed to fetch projects: ${response.statusText}`);
+                throw new Error(Failed to fetch projects: ${response.statusText});
             }
 
             const projects = await response.json();
@@ -187,7 +169,7 @@ async function checkAuthentication() {
             const response = await fetch(API_URL_POST, {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${token}`,
+                    "Authorization": Bearer ${token},
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(projectData),
@@ -196,7 +178,7 @@ async function checkAuthentication() {
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error("API Error:", errorData);
-                alert(`Error: ${errorData.message || "Failed to save project."}`);
+                alert(Error: ${errorData.message || "Failed to save project."});
             } else {
                 alert("Project created successfully!");
                 newProjectForm.reset();
