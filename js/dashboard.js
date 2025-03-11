@@ -19,8 +19,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 console.error("No authentication token or user ID found.");
                 alert("You must be signed in to access this page.");
                 window.location.href = "signin.html";
-                reject("No authenticated user.");
-                return;
+                return reject("No authenticated user.");
             }
 
             // ✅ Verify the Cognito session
@@ -35,23 +34,24 @@ document.addEventListener("DOMContentLoaded", async function () {
                 console.error("No Cognito user found.");
                 alert("Session expired. Please sign in again.");
                 window.location.href = "signin.html";
-                reject("Session expired.");
-                return;
+                return reject("Session expired.");
             }
 
             cognitoUser.getSession((err, session) => {
-                if (err || !session.isValid()) {
+                if (err || !session || !session.isValid()) {
                     console.error("Session expired or invalid.", err);
                     alert("Session expired. Please sign in again.");
                     window.location.href = "signin.html";
-                    reject("Invalid session.");
-                } else {
-                    console.log("User is authenticated. Session is valid.");
-                    // Store fresh tokens in localStorage
-                    localStorage.setItem("cognitoIdToken", session.getIdToken().getJwtToken());
-                    localStorage.setItem("cognitoUserId", session.getIdToken().payload.sub);
-                    resolve();
+                    return reject("Invalid session.");
                 }
+
+                console.log("User is authenticated. Session is valid.");
+
+                // ✅ Store fresh tokens in localStorage
+                localStorage.setItem("cognitoIdToken", session.getIdToken().getJwtToken());
+                localStorage.setItem("cognitoUserId", session.getIdToken().payload.sub);
+
+                resolve();
             });
         });
     }
@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             const response = await fetch(API_URL_GET, {
                 method: "GET",
                 headers: {
-                    "Authorization": `Bearer ${token}`,
+                    "Authorization": `Bearer ${token}`, // ✅ FIXED
                     "Content-Type": "application/json",
                 },
             });
@@ -93,8 +93,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
 
             if (!response.ok) {
-                throw new Error(`Failed to fetch projects: ${response.statusText}`);
-
+                throw new Error(`Failed to fetch projects: ${response.statusText}`); // ✅ FIXED
             }
 
             const projects = await response.json();
@@ -156,7 +155,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             name: projectName,
             address: projectAddress,
             type: projectType,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
         };
 
         const submitButton = newProjectForm.querySelector(".submit-btn");
@@ -170,7 +169,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             const response = await fetch(API_URL_POST, {
                 method: "POST",
                 headers: {
-                    "Authorization": Bearer ${token},
+                    "Authorization": `Bearer ${token}`, // ✅ FIXED
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(projectData),
@@ -179,7 +178,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error("API Error:", errorData);
-                alert(Error: ${errorData.message || "Failed to save project."});
+                alert(`Error: ${errorData.message || "Failed to save project."}`); // ✅ FIXED
             } else {
                 alert("Project created successfully!");
                 newProjectForm.reset();
