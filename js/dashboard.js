@@ -93,7 +93,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
 
             if (!response.ok) {
-                throw new Error(Failed to fetch projects: ${response.statusText});
+                throw new Error(`Failed to fetch projects: ${response.statusText}`);
+
             }
 
             const projects = await response.json();
