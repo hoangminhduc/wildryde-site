@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             const response = await fetch(API_URL_GET, {
                 method: "GET",
                 headers: {
-                    "Authorization": Bearer ${token},
+                    "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
             });
