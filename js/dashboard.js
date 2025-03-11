@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const projectTableBody = document.getElementById("projectTableBody");
     const signOutButton = document.getElementById("signOutButton");
 
-    const API_URL_GET = "https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/GetUserProjects";
+    const API_URL_GET = "https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/LoadProjects";
     const API_URL_POST = "https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/SaveProject";
 
     // ✅ Function to decode JWT and extract `sub` (User ID)
