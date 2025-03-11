@@ -68,64 +68,57 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     // ✅ Load projects assigned to the authenticated user
-    async function loadProjects() {
-        try {
-            const token = getAuthToken();
-            if (!token) {
-                console.error("No authentication token found.");
-                return;
-            }
-
-            projectTableBody.innerHTML = "<tr><td colspan='2'>Loading projects...</td></tr>";
-
-            const response = await fetch(API_URL_GET, {
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${token}`, // ✅ FIXED
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (response.status === 401 || response.status === 403) {
-                console.warn("Unauthorized request. Redirecting to sign-in.");
-                alert("Session expired. Please sign in again.");
-                window.location.href = "signin.html";
-                return;
-            }
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch projects: ${response.statusText}`); // ✅ FIXED
-            }
-
-            const projects = await response.json();
-            projectTableBody.innerHTML = ""; // Clear loading message
-
-            if (!Array.isArray(projects) || projects.length === 0) {
-                projectTableBody.innerHTML = "<tr><td colspan='2'>No projects found.</td></tr>";
-                return;
-            }
-
-            // Loop through projects and add them to the table
-            projects.forEach((project) => {
-                const row = document.createElement("tr");
-
-                const nameCell = document.createElement("td");
-                nameCell.textContent = project.name || "N/A";
-                row.appendChild(nameCell);
-
-                const addressCell = document.createElement("td");
-                addressCell.textContent = project.address || "N/A";
-                row.appendChild(addressCell);
-
-                projectTableBody.appendChild(row);
-            });
-
-            console.log("Projects displayed successfully!");
-        } catch (error) {
-            console.error("Error loading projects:", error);
-            projectTableBody.innerHTML = "<tr><td colspan='2'>Failed to load projects.</td></tr>";
+   async function loadProjects() {
+    try {
+        const token = localStorage.getItem("cognitoIdToken");
+        if (!token) {
+            console.error("🚨 No authentication token found.");
+            return;
         }
+
+        projectTableBody.innerHTML = "<tr><td colspan='2'>Loading projects...</td></tr>";
+
+        const response = await fetch("https://nns528n8ac.execute-api.ca-central-1.amazonaws.com/dev/GetUserProjects", {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch projects: ${response.statusText}`);
+        }
+
+        const projects = await response.json();
+        projectTableBody.innerHTML = "";
+
+        if (!Array.isArray(projects) || projects.length === 0) {
+            projectTableBody.innerHTML = "<tr><td colspan='2'>No projects found.</td></tr>";
+            return;
+        }
+
+        projects.forEach((project) => {
+            const row = document.createElement("tr");
+
+            const nameCell = document.createElement("td");
+            nameCell.textContent = project.name || "N/A";
+            row.appendChild(nameCell);
+
+            const addressCell = document.createElement("td");
+            addressCell.textContent = project.address || "N/A";
+            row.appendChild(addressCell);
+
+            projectTableBody.appendChild(row);
+        });
+
+        console.log("✅ Projects displayed successfully!");
+    } catch (error) {
+        console.error("🚨 Error loading projects:", error);
+        projectTableBody.innerHTML = "<tr><td colspan='2'>Failed to load projects.</td></tr>";
     }
+}
+
 
     // ✅ Show the project form when clicking "+ Create Project"
     createProjectBtn.addEventListener("click", () => {
